@@ -1,0 +1,32 @@
+{
+  "name": "texturity.js",
+  "version": "0.1.0",
+  "description": "WebGL based library for drawing textures",
+  "main": "src/index.js",
+  "scripts": {
+    "build": "rollup src/canvas.js --o build/texturity.js -f iife --name Texturity",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ni55aN/texturity.js.git"
+  },
+  "keywords": [
+    "texture",
+    "image",
+    "procesing",
+    "drawing",
+    "webgl"
+  ],
+  "author": "Ni55aN",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Ni55aN/texturity.js/issues"
+  },
+  "homepage": "https://github.com/Ni55aN/texturity.js#readme",
+  "devDependencies": {
+    "babel-eslint": "^7.2.3",
+    "eslint": "^4.6.1",
+    "rollup": "^0.49.2"
+  }
+}
