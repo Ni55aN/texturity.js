@@ -55,12 +55,12 @@ export class Canvas {
         return this;
     }
 
-    transform(image, tx, ty, repeat) {
+    transform(texture, tx, ty, repeat) {
         var generator = new TransformGenerator(tx, ty, repeat);
 
         var rects = generator.getRects(this.w, this.h);
 
-        this.drawImage(image, rects);
+        this.drawTexture(texture, rects);
         return this;
     }
 
