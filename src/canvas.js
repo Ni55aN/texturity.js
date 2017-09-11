@@ -257,8 +257,8 @@ export class Canvas {
         return img;
     }
 
-    takeGL(callback) {
-        callback(gl);
+    static getGL() {
+        return gl;
     }
 
     static initGL() {
