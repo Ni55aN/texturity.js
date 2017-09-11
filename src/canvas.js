@@ -88,7 +88,7 @@ export class Canvas {
         this.fillStyle([0, 0, 0, 1]);
         this.drawRect(0, 0, this.w, this.h);
         this.fillStyle([1, 1, 1, 1]);
-		
+
         var generator = new BrickGenerator(count, margin);
         var bricks = generator.getBricks(this.w, this.h);
 
@@ -281,8 +281,6 @@ export class Canvas {
             radialGradient: RadialGradientProgram()
         }
         
-        Canvas.useProgram(programs.simple);
-
         vertexBuffer = gl.createBuffer();
         
         gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
@@ -302,6 +300,7 @@ export class Canvas {
         element.height = h;
         
         gl.viewport(0, 0, w, h);
+        Canvas.useProgram(programs.simple);
     }
 
     static createShader(source, type) {
