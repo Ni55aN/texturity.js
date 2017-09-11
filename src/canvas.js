@@ -166,7 +166,7 @@ export class Canvas {
         gl.bindTexture(gl.TEXTURE_2D, texture);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
-        gl.uniform1i(gl.getUniformLocation(blurProgram, 'texture'), tex);
+        gl.uniform1i(gl.getUniformLocation(blurProgram, 'texture'), texture);
 
         this.drawBuffer([-1, -1, -1, 1, 1, 1, 1, 1, 1, -1, -1, -1]);
 

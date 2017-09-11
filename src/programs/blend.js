@@ -6,7 +6,7 @@ export default function(b, expression) {
         attribute vec2 position;
         varying mediump vec2 texcoord;
         void main(void) {
-            texcoord = vec2((position.x+1.0)/2.0,(1.0-position.y)/2.0);
+            texcoord = (position+1.0)/2.0;
             gl_Position = vec4(position, 0.0, 1.0);
         }
         `,
