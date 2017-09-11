@@ -220,7 +220,15 @@ export class Canvas {
     }
 
     toSrc() {
-        return element.toDataURL();
+        return element.toDataURL('image/png');
+    }
+
+    async toSrcAsync() {
+        return new Promise(resolve => {
+            element.toBlob((blob) => {
+                resolve(URL.createObjectURL(blob))
+            }, 'image/png');
+        });    
     }
     
     async toImage() {
