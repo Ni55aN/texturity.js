@@ -1,6 +1,6 @@
 import { Canvas } from '../canvas'
 
-export default function(a, b, expression) {
+export default function(b, expression) {
     return Canvas.createShaderProgram(
         `
         attribute vec2 position;

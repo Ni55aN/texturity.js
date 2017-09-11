@@ -19,21 +19,33 @@ export class Canvas {
     constructor(w, h) {
         this.w = w;
         this.h = h;
-        this.img = null;
+        this.backup = null;
         gl = Canvas.initGL(w, h);
+
+        Canvas.resize(w, h);
         gl.clear(gl.COLOR_BUFFER_BIT);
     }
 
-    async save() {
-        this.img = await this.toImage();
+    save() {
+        this.backup = {
+            texture: this.toTexture(),
+            width: element.width,
+            height: element.height
+        };
+        return this;
     }
 
     restore() {
-        if (!this.img) throw 'nothing to restore';
+        if (!this.backup) throw 'nothing to restore';
 
-        Canvas.resize(this.img.width, this.img.height);
-        this.drawImage(this.img, 0, 0, this.img.width, this.img.height);
-    
+        var w = this.backup.width;
+        var h = this.backup.height;
+
+        Canvas.resize(w, h);
+        this.drawTexture(this.backup.texture, 0, 0, w, h, true);
+
+        this.backup = null;
+
         return this;
     }
 	
@@ -95,12 +107,15 @@ export class Canvas {
         return this;
     }
 
-    drawImage(img, x, y, w, h) {
+    drawTexture(texture, x, y, w, h, flipY) {
         var drawArray = x instanceof Array;
-			
+
         Canvas.useProgram(programs.image);
         var uvBuffer = gl.createBuffer();
-        var uvs = [0, 0, 1, 0, 1, 1, 1, 1, 0, 1, 0, 0];
+        var uvs = flipY ?
+            [0, 1, 1, 1, 1, 0, 1, 0, 0, 0, 0, 1]
+            :    
+            [0, 0, 1, 0, 1, 1, 1, 1, 0, 1, 0, 0];
 
         gl.bindBuffer(gl.ARRAY_BUFFER, uvBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(uvs), gl.STATIC_DRAW);
@@ -111,18 +126,18 @@ export class Canvas {
         gl.enableVertexAttribArray(0);
         gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
 
-        var tex = Canvas.loadTexture(img);
-
-        gl.bindTexture(gl.TEXTURE_2D, tex);
+        gl.bindTexture(gl.TEXTURE_2D, texture);
 		
         if (drawArray)
             x.forEach(r => this.drawRect(...r));
         else
         	this.drawRect(x, y, w, h);
-		
-        gl.deleteBuffer(uvBuffer);
-        Canvas.useProgram(programs.simple);
+        gl.disableVertexAttribArray(1);
 
+        Canvas.useProgram(programs.simple);
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+        gl.deleteBuffer(uvBuffer);
+  
         return this;
     }
 
@@ -145,14 +160,13 @@ export class Canvas {
         return this;
     }
 	
-    blur(image, radius) {
+    blur(texture, radius) {
         radius = Math.min(radius, 25);
         var blurProgram = BlurProgram(radius);
 
         Canvas.useProgram(blurProgram);
-        var tex = Canvas.loadTexture(image);
 
-        gl.bindTexture(gl.TEXTURE_2D, tex);
+        gl.bindTexture(gl.TEXTURE_2D, texture);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
         gl.uniform1i(gl.getUniformLocation(blurProgram, 'texture'), tex);
@@ -164,29 +178,26 @@ export class Canvas {
         return this;
     }
 
-    blend(image, b, expression) {
-        var a = image;
-        
-        var blendProgram = BlendProgram(a, b, expression);
+    blend(texture, b, expression) {
+        var blendProgram = BlendProgram(b, expression);
 
         Canvas.useProgram(blendProgram);
-        var tex1 = Canvas.loadTexture(a);
-
-        if (b instanceof Canvas) {
-            var tex2 = Canvas.loadTexture(b);
+        
+        if (b instanceof WebGLTexture) {
+            var tex2 = b;
 
             gl.activeTexture(gl.TEXTURE0);
-            gl.bindTexture(gl.TEXTURE_2D, tex1);
+            gl.bindTexture(gl.TEXTURE_2D, texture);
             gl.activeTexture(gl.TEXTURE1);
             gl.bindTexture(gl.TEXTURE_2D, tex2);
             gl.uniform1i(gl.getUniformLocation(blendProgram, 'texture1'), 0);
             gl.uniform1i(gl.getUniformLocation(blendProgram, 'texture2'), 1);
         } else if (b instanceof Array) {
-            gl.bindTexture(gl.TEXTURE_2D, tex1);
+            gl.bindTexture(gl.TEXTURE_2D, texture);
             gl.uniform1i(gl.getUniformLocation(blendProgram, 'texture1'), 0);
             gl.uniform3fv(gl.getUniformLocation(blendProgram, 'color'), b);
         } else {
-            gl.bindTexture(gl.TEXTURE_2D, tex1);
+            gl.bindTexture(gl.TEXTURE_2D, texture);
             gl.uniform1i(gl.getUniformLocation(blendProgram, 'texture1'), 0);
             gl.uniform1f(gl.getUniformLocation(blendProgram, 'value'), b);
         }
@@ -198,12 +209,11 @@ export class Canvas {
         return this;
     }
 
-    normalMap(image, scale) {
+    normalMap(texture, scale) {
         Canvas.useProgram(programs.normal);
         gl.uniform1f(gl.getUniformLocation(programs.normal, 'scale'), scale);
-        var tex = Canvas.loadTexture(image);
 
-        gl.bindTexture(gl.TEXTURE_2D, tex);
+        gl.bindTexture(gl.TEXTURE_2D, texture);
 
         this.drawBuffer([-1, -1, -1, 1, 1, 1, 1, 1, 1, -1, -1, -1]);
 
@@ -228,6 +238,17 @@ export class Canvas {
             img.src = canv.toSrc();
         });
     }
+    
+    toTexture() {
+        var texture = gl.createTexture();
+
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, element.width, element.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+        gl.copyTexSubImage2D(gl.TEXTURE_2D, 0, 0, 0, 0, 0, element.width, element.height);
+        
+        return texture;
+    }
 
     toImageSync() {
         var img = new Image();
@@ -240,12 +261,12 @@ export class Canvas {
         callback(gl);
     }
 
-    static initialInit() {
-        if (gl) return;
+    static initGL() {
+        if (gl) return gl;
 
         element = document.createElement('canvas');
         gl = element.getContext('webgl');
-
+        
         programs = {
             simple: SimpleProgram(),
             normal: NormalProgram(),
@@ -254,31 +275,28 @@ export class Canvas {
             noise: NoiseProgram(),
             radialGradient: RadialGradientProgram()
         }
-
+        
         Canvas.useProgram(programs.simple);
 
         vertexBuffer = gl.createBuffer();
-
+        
         gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-
+        
         var posAttr = gl.getAttribLocation(programs.simple, 'position');
-
+        
         gl.enableVertexAttribArray(posAttr);
         gl.vertexAttribPointer(posAttr, 2, gl.FLOAT, false, 0, 0);
-    }
 
-    static initGL(w, h) {
-        this.initialInit();
-        this.resize(w, h);
+        gl.clearColor(0.0, 0.6, 0.0, 1.0);
+
         return gl;
     }
 
     static resize(w, h) {
         element.width = w;
         element.height = h;
-
-        gl.viewport(0, 0, element.width, element.height);
-        gl.clearColor(0.0, 0.0, 0.0, 0.0);
+        
+        gl.viewport(0, 0, w, h);
     }
 
     static createShader(source, type) {
@@ -317,7 +335,6 @@ export class Canvas {
         
         var tex = gl.createTexture();
 
-        // console.log(img);
         gl.bindTexture(gl.TEXTURE_2D, tex);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
@@ -333,4 +350,8 @@ export class Canvas {
 
         gl.uniform2fv(resolLoc, [element.width, element.height]);
     }
+}
+
+export function initGL() {
+    Canvas.initGL();
 }
