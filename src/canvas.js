@@ -107,15 +107,12 @@ export class Canvas {
         return this;
     }
 
-    drawTexture(texture, x, y, w, h, flipY) {
+    drawTexture(texture, x, y, w, h) {
         var drawArray = x instanceof Array;
 
         Canvas.useProgram(programs.image);
         var uvBuffer = gl.createBuffer();
-        var uvs = flipY ?
-            [0, 1, 1, 1, 1, 0, 1, 0, 0, 0, 0, 1]
-            :    
-            [0, 0, 1, 0, 1, 1, 1, 1, 0, 1, 0, 0];
+        var uvs = [0, 1, 1, 1, 1, 0, 1, 0, 0, 0, 0, 1]
 
         gl.bindBuffer(gl.ARRAY_BUFFER, uvBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(uvs), gl.STATIC_DRAW);
@@ -246,7 +243,7 @@ export class Canvas {
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, element.width, element.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
         gl.copyTexSubImage2D(gl.TEXTURE_2D, 0, 0, 0, 0, 0, element.width, element.height);
-        
+       
         return texture;
     }
 
@@ -336,6 +333,7 @@ export class Canvas {
         var tex = gl.createTexture();
 
         gl.bindTexture(gl.TEXTURE_2D, tex);
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true); 
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
