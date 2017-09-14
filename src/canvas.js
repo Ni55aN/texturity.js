@@ -13,6 +13,7 @@ var gl = null;
 var element = null;
 var programs = null;
 var vertexBuffer = null;
+var textures = [];
 
 export class Canvas {
 
@@ -20,6 +21,7 @@ export class Canvas {
         this.w = w;
         this.h = h;
         this.backup = null;
+        
         gl = Canvas.initGL(w, h);
 
         Canvas.resize(w, h);
@@ -219,6 +221,23 @@ export class Canvas {
         return this;
     }
 
+    toTexture() {
+        var texture = gl.createTexture();
+
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, element.width, element.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+        gl.copyTexSubImage2D(gl.TEXTURE_2D, 0, 0, 0, 0, 0, element.width, element.height);
+       
+        textures.push(texture);
+        return texture;
+    }
+
+    static disposeTextures() {
+        textures.forEach(t => gl.deleteTexture(t));
+        textures = [];
+    }
+
     toSrc() {
         return element.toDataURL('image/png');
     }
@@ -242,17 +261,6 @@ export class Canvas {
             };
             img.src = canv.toSrc();
         });
-    }
-    
-    toTexture() {
-        var texture = gl.createTexture();
-
-        gl.bindTexture(gl.TEXTURE_2D, texture);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, element.width, element.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
-        gl.copyTexSubImage2D(gl.TEXTURE_2D, 0, 0, 0, 0, 0, element.width, element.height);
-       
-        return texture;
     }
 
     toImageSync() {
