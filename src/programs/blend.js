@@ -1,7 +1,7 @@
-import { Canvas } from '../canvas'
+import { Canvas, createShaderProgram } from '../canvas'
 
 export default function(b, expression) {
-    return Canvas.createShaderProgram(
+    return createShaderProgram(
         `
         attribute vec2 position;
         varying mediump vec2 texcoord;
