@@ -22,7 +22,7 @@ export class Canvas {
         this.h = h;
         this.backup = null;
         
-        gl = Canvas.initGL(w, h);
+        gl = Canvas.initGL();
 
         Canvas.resize(w, h);
         gl.clear(gl.COLOR_BUFFER_BIT);
@@ -274,11 +274,17 @@ export class Canvas {
         return gl;
     }
 
-    static initGL() {
+    static initGL(contextName = 'webgl', params = {}) {
         if (gl) return gl;
+      
+        params = Object.assign({
+            alpha: false,
+            antialias: false,
+            depth: false
+        }, params);
 
         element = document.createElement('canvas');
-        gl = element.getContext('webgl');
+        gl = element.getContext(contextName, params);
         
         programs = {
             simple: SimpleProgram(),
@@ -365,6 +371,6 @@ export class Canvas {
     }
 }
 
-export function initGL() {
-    Canvas.initGL();
+export function initGL(contextName, params) {
+    return Canvas.initGL(contextName, params)
 }
