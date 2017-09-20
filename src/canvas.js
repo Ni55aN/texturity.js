@@ -14,16 +14,18 @@ var element = null;
 var programs = null;
 var vertexBuffer = null;
 var textures = [];
+var format = null
 
 export class Canvas {
 
-    constructor(w, h) {
+    constructor(w, h, clearColor = [0.0, 0.0, 0.0, 1.0]) {
         this.w = w;
         this.h = h;
         this.backup = null;
         
         gl = initGL();
-
+        gl.clearColor(...clearColor);
+            
         resize(w, h);
         gl.clear(gl.COLOR_BUFFER_BIT);
     }
@@ -225,7 +227,7 @@ export class Canvas {
 
         gl.bindTexture(gl.TEXTURE_2D, texture);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, element.width, element.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+        gl.texImage2D(gl.TEXTURE_2D, 0, format, element.width, element.height, 0, format, gl.UNSIGNED_BYTE, null);
         gl.copyTexSubImage2D(gl.TEXTURE_2D, 0, 0, 0, 0, 0, element.width, element.height);
        
         textures.push(texture);
@@ -282,6 +284,8 @@ export function initGL(contextName = 'webgl', params = {}) {
         depth: false
     }, params);
 
+    format = params.alpha ? gl.RGBA : gl.RGB; 
+
     element = document.createElement('canvas');
     gl = element.getContext(contextName, params);
     
@@ -294,7 +298,13 @@ export function initGL(contextName = 'webgl', params = {}) {
         radialGradient: RadialGradientProgram()
     }
     
-    vertexBuffer = gl.createBuffer();
+    vertexBuffer = createBuffer();
+
+    return gl;
+}
+
+export function createBuffer() {
+    var buffer = gl.createBuffer();
     
     gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
     
@@ -302,10 +312,8 @@ export function initGL(contextName = 'webgl', params = {}) {
     
     gl.enableVertexAttribArray(posAttr);
     gl.vertexAttribPointer(posAttr, 2, gl.FLOAT, false, 0, 0);
-
-    gl.clearColor(0.0, 0.6, 0.0, 1.0);
-
-    return gl;
+    
+    return buffer;
 }
 
 export function resize(w, h) {
@@ -357,7 +365,7 @@ export function loadTexture(img) {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+    gl.texImage2D(gl.TEXTURE_2D, 0, format, format, gl.UNSIGNED_BYTE, img);
     gl.bindTexture(gl.TEXTURE_2D, null);
     return tex;
 }
