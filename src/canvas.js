@@ -284,10 +284,9 @@ export function initGL(contextName = 'webgl', params = {}) {
         depth: false
     }, params);
 
-    format = params.alpha ? gl.RGBA : gl.RGB; 
-
     element = document.createElement('canvas');
     gl = element.getContext(contextName, params);
+    format = params.alpha ? gl.RGBA : gl.RGB; 
     
     programs = {
         simple: SimpleProgram(),
