@@ -305,7 +305,7 @@ export function initGL(contextName = 'webgl', params = {}) {
 export function createBuffer() {
     var buffer = gl.createBuffer();
     
-    gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
     
     var posAttr = gl.getAttribLocation(programs.simple, 'position');
     
