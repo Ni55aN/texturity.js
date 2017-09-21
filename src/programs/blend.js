@@ -1,6 +1,6 @@
 import { Canvas, createShaderProgram } from '../canvas'
 
-export default function(b, expression) {
+export default function (b, expression) {
     return createShaderProgram(
         `
         attribute vec2 position;
@@ -16,7 +16,7 @@ export default function(b, expression) {
         #endif
         varying mediump vec2 texcoord;
         uniform sampler2D texture1;
-        ${b instanceof Canvas ?
+        ${b instanceof WebGLTexture ?
         'uniform sampler2D texture2'
         : (b instanceof Array ?
             'uniform mediump vec3 color'
@@ -24,7 +24,7 @@ export default function(b, expression) {
         
         void main(void) {
             vec3 a = texture2D(texture1, texcoord).rgb;
-            vec3 b = ${b instanceof Canvas ?
+            vec3 b = ${b instanceof WebGLTexture ?
         'texture2D(texture2, texcoord).rgb'
         : (b instanceof Array ?
             'color'
