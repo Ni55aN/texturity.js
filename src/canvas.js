@@ -204,6 +204,7 @@ export class Canvas {
         this.drawBuffer([-1, -1, -1, 1, 1, 1, 1, 1, 1, -1, -1, -1]);
 
         useProgram(programs.simple);
+        gl.activeTexture(gl.TEXTURE0);
         gl.deleteProgram(blendProgram);
         
         return this;
