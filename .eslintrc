@@ -72,6 +72,6 @@
       "ignoreComments": true
     }],
     "max-params": [1, 6],
-    "max-statements": [1, 12]
+    "max-statements": [1, 18]
   }
 }
