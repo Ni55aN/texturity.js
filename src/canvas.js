@@ -163,34 +163,29 @@ export class Canvas {
         return this;
     }
 	
-    blur(texture, radius) {
-        radius = Math.min(radius, 25);
-        var blurProgram = BlurProgram(radius);
+    blur(texture, iterations) {
+        iterations = Math.min(iterations, 100);
+        var kernel = new Array(9).fill(1 / 9);
+        var currentTexture = texture;
 
-        useProgram(blurProgram);
-
-        gl.bindTexture(gl.TEXTURE_2D, texture);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
-        gl.uniform1i(gl.getUniformLocation(blurProgram, 'texture'), texture);
-
-        this.drawBuffer([-1, -1, -1, 1, 1, 1, 1, 1, 1, -1, -1, -1]);
-
-        useProgram(programs.simple);
+        for (var i = 0; i < iterations; i++) {
+            this.convolution(currentTexture, kernel)
+            this.disposeTexture(currentTexture)
+            currentTexture = this.toTexture();
+        }
         return this;
     }
 
     convolution(texture, matrix) {
         if (!(gl instanceof WebGL2RenderingContext)) throw new Error('Supported only in webgl 2');
-        var program = ConvolutionProgram(matrix);
-        
-        useProgram(program);
+
+        useProgram(programs.convolution);
 
         gl.bindTexture(gl.TEXTURE_2D, texture);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-        gl.uniform1i(gl.getUniformLocation(program, 'texture'), texture);
-        gl.uniform1fv(gl.getUniformLocation(program, 'matrix'),
+        gl.uniform1i(gl.getUniformLocation(programs.convolution, 'texture'), texture);
+        gl.uniform1fv(gl.getUniformLocation(programs.convolution, 'matrix'),
             new Float32Array(matrix));
         
         this.drawBuffer([-1, -1, -1, 1, 1, 1, 1, 1, 1, -1, -1, -1]);
@@ -301,6 +296,13 @@ export class Canvas {
         return this;
     }
 
+    disposeTexture(texture) {
+        var index = textures.indexOf(texture);
+
+        gl.deleteTexture(texture);
+        textures.splice(index, 1);
+    }
+
     toTexture() {
         var texture = gl.createTexture();
 
@@ -370,6 +372,7 @@ export function initGL(contextName = 'webgl', params = {}) {
     programs = {
         simple: SimpleProgram(),
         normal: NormalProgram(),
+        convolution: ConvolutionProgram(),
         circle: CircleProgram(),
         image: ImageProgram(),
         noise: NoiseProgram(),
