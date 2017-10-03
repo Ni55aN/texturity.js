@@ -1,5 +1,6 @@
 import BrickGenerator from './generators/brick';
 import BlendProgram from './programs/blend';
+import ConvolutionProgram from './programs/convolution';
 import FourierProgram from './programs/fourier';
 import TransformGenerator from './generators/transform';
 import BlurProgram from './programs/blur';
@@ -175,6 +176,25 @@ export class Canvas {
 
         this.drawBuffer([-1, -1, -1, 1, 1, 1, 1, 1, 1, -1, -1, -1]);
 
+        useProgram(programs.simple);
+        return this;
+    }
+
+    convolution(texture, matrix) {
+        if (!(gl instanceof WebGL2RenderingContext)) throw new Error('Supported only in webgl 2');
+        var program = ConvolutionProgram(matrix);
+        
+        useProgram(program);
+
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.uniform1i(gl.getUniformLocation(program, 'texture'), texture);
+        gl.uniform1fv(gl.getUniformLocation(program, 'matrix'),
+            new Float32Array(matrix));
+        
+        this.drawBuffer([-1, -1, -1, 1, 1, 1, 1, 1, 1, -1, -1, -1]);
+        
         useProgram(programs.simple);
         return this;
     }
