@@ -307,7 +307,7 @@ export class Canvas {
         gl.bindTexture(gl.TEXTURE_2D, texture);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
         gl.texImage2D(gl.TEXTURE_2D, 0, format, element.width, element.height, 0, format, gl.UNSIGNED_BYTE, null);
-        gl.copyTexImage2D(gl.TEXTURE_2D, 0, format[0], 0, 0, element.width, element.height, 0);
+        gl.copyTexImage2D(gl.TEXTURE_2D, 0, format, 0, 0, element.width, element.height, 0);
 
         textures.push(texture);
         return texture;
