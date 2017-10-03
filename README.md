@@ -13,7 +13,8 @@ WebGL based library for fast drawing textures
 - Gradient
 - Blending
 - Image drawing
-- etc (coming soon)
+- Convolution
+- Fourier transormation
 
 ### Usage
 
