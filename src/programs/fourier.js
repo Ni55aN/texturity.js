@@ -1,20 +1,23 @@
 import { createShaderProgram } from '../canvas'
 
 export default function (w, h, inverse) {
+    
+    var assign = `
+    float gray = texture2D(texture, (coord+offset)/screen).r;
 
-    var assign = `float gray = toGray(texture2D(texture, targetCoord).rgb);
-    real += gray * cos(angle); 
-    imag -= gray * sin(angle);`;
+    real += gray * cos(-angle); 
+    imag += gray * sin(-angle);
+    `;
     var fragColor = `
-    float sq = screen.x*screen.y;
-    gl_FragColor = vec4(real/sq,imag/sq,magnitude(real,imag),1.0);
+    gl_FragColor = vec4(real,imag,magnitude(real,imag),1.0);
     `;
 
-    var inverseAssign = `vec2 source = texture2D(texture, targetCoord).rg;
+    var inverseAssign = `vec2 source = texture2D(texture, (coord+offset)/screen).rg;
     real += source.r * cos(angle) - source.g * sin(angle);
     imag += source.r * sin(angle) + source.g * cos(angle);`;
     var inverseFragColor = `
-    gl_FragColor = vec4(real,real,real,1.0);`;
+    real = real / screen.x / screen.y;
+    gl_FragColor = vec4(vec3(real),1.0);`;
 
     return createShaderProgram(
         `
@@ -34,7 +37,7 @@ export default function (w, h, inverse) {
     const int W = ${w};
     const int H = ${h};
     const float M_PI = 3.1415926535897932384626433832795;
-    const vec2 screen = vec2(float(W),float(H));
+    const vec2 screen = vec2(${w},${h});
 
     uniform sampler2D texture;
     uniform vec2 resolution;
@@ -54,13 +57,14 @@ export default function (w, h, inverse) {
     void main(void) {
         float real = 0.0;
         float imag = 0.0;
-        vec2 destCoord = gl_FragCoord.xy${inverse?'':'-screen/2.0'};
+        vec2 offset = vec2(0.5,0.5);
+        float x = gl_FragCoord.x-offset.x;
+        float y = gl_FragCoord.y-offset.y;
 
-        for(int y = 0; y < H; y++)
-            for(int x = 0; x < W; x++){
-                vec2 targetCoord = vec2(x,y)/screen;
-                vec2 a = destCoord*vec2(x,y)/screen;
-                float angle = 2.0*M_PI*(a.x+a.y);
+        for(int j = 0; j < H; j++)
+            for(int i = 0; i < W; i++){
+                vec2 coord = vec2(float(i),float(j));
+                float angle = 2.0*M_PI*(x*coord.x/screen.x+y*coord.y/screen.y);
                 ${inverse ? inverseAssign : assign}
             }
             ${inverse ? inverseFragColor : fragColor}

@@ -113,12 +113,11 @@ export class Canvas {
         return this;
     }
 
-    drawTexture(texture, x, y, w, h) {
-        var drawArray = x instanceof Array;
-
+    drawTexture(texture, x, y, w, h, params = [], uvs = null) {
         useProgram(programs.image);
         var uvBuffer = gl.createBuffer();
-        var uvs = [0, 1, 1, 1, 1, 0, 1, 0, 0, 0, 0, 1]
+
+        uvs = uvs || [0, 1, 1, 1, 1, 0, 1, 0, 0, 0, 0, 1];
 
         gl.bindBuffer(gl.ARRAY_BUFFER, uvBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(uvs), gl.STATIC_DRAW);
@@ -130,8 +129,11 @@ export class Canvas {
         gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
 
         gl.bindTexture(gl.TEXTURE_2D, texture);
+        params.forEach(param => {
+            gl.texParameteri(gl.TEXTURE_2D, param[0], param[1]);
+        });    
 
-        if (drawArray)
+        if (x instanceof Array)
             x.forEach(r => this.drawRect(...r));
         else
         	this.drawRect(x, y, w, h);
@@ -245,6 +247,8 @@ export class Canvas {
 
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
         
         gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, fbTex, 0);
 
@@ -254,6 +258,40 @@ export class Canvas {
             alert('can not render to floating point textures');
         
         return { buffer: fb, texture: fbTex };
+    }
+
+    createFloatTexture() {
+        var texture = gl.createTexture();
+        
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
+
+        return texture;
+    }
+
+    drawFourierSpectrum(texture) {
+       
+        this.blend(texture, element.width * element.height, 'vec3(a.z/sqrt(b+a.z*a.z))');
+        var uv = 
+        [
+            -0.5, 0.5,
+            0.5, 0.5,
+            0.5, -0.5,
+            
+            0.5, -0.5,
+            -0.5, -0.5,
+            -0.5, 0.5
+        ]
+        var params = [[gl.TEXTURE_WRAP_T, gl.REPEAT], [gl.TEXTURE_WRAP_S, gl.REPEAT]];
+
+        texture = this.toTexture();
+        this.drawTexture(texture, 0, 0, element.width, element.height, params, uv)
+        gl.deleteTexture(texture);
+
+        return this;
     }
 
     fourierTransform(texture, inverse = false) {
@@ -266,21 +304,18 @@ export class Canvas {
         gl.bindTexture(gl.TEXTURE_2D, texture);
         this.drawRect(0, 0, this.w, this.h);
 
-        var texture = gl.createTexture();
+        var floatTexture = this.createFloatTexture();
 
-        gl.bindTexture(gl.TEXTURE_2D, texture);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
         gl.texImage2D(gl.TEXTURE_2D, 0, formats[0], element.width, element.height, 0, formats[1], formats[2], null);
         gl.copyTexImage2D(gl.TEXTURE_2D, 0, formats[0], 0, 0, element.width, element.height, 0);
-
+    
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
         gl.deleteFramebuffer(framebuffer.buffer);
         
         useProgram(programs.simple);
         gl.deleteProgram(fourier);
 
-        return texture;
+        return floatTexture;
     }
 
     normalMap(texture, scale) {
