@@ -294,6 +294,41 @@ export class Canvas {
         return this;
     }
 
+    fourierFilter(texture, mask) {
+        var formats = [gl.RGBA32F, gl.RGBA, gl.FLOAT];
+        var framebuffer = this.initFB(...formats);
+        
+        if (mask instanceof WebGLTexture) { /// shift mask
+            var uv =
+                [
+                    -0.5, 0.5,
+                    0.5, 0.5,
+                    0.5, -0.5,
+            
+                    0.5, -0.5,
+                    -0.5, -0.5,
+                    -0.5, 0.5
+                ]
+            var params = [[gl.TEXTURE_WRAP_T, gl.REPEAT], [gl.TEXTURE_WRAP_S, gl.REPEAT]];
+
+            this.drawTexture(mask, 0, 0, element.width, element.height, params, uv)
+            gl.deleteTexture(mask);
+            mask = this.toTexture();
+        }
+
+        this.blend(texture, mask, 'vec3(a.rg*b.r,a.b)');
+
+        var floatTexture = this.createFloatTexture();
+        
+        gl.texImage2D(gl.TEXTURE_2D, 0, formats[0], element.width, element.height, 0, formats[1], formats[2], null);
+        gl.copyTexImage2D(gl.TEXTURE_2D, 0, formats[0], 0, 0, element.width, element.height, 0);
+        
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        gl.deleteFramebuffer(framebuffer.buffer);
+
+        return floatTexture;
+    }
+
     fourierTransform(texture, inverse = false) {
         var formats = [gl.RGBA32F, gl.RGBA, gl.FLOAT];
         var framebuffer = this.initFB(...formats);
