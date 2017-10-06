@@ -1,8 +1,5 @@
-import { createShaderProgram } from '../canvas'
-
-export default function () {
-    return createShaderProgram(
-        `#version 300 es
+export default {
+    vertex: `#version 300 es
 
         precision mediump float;
         in vec2 position;
@@ -11,7 +8,7 @@ export default function () {
             gl_Position = vec4(position, 0.0, 1.0);
         }
         `,
-        `#version 300 es
+    fragment: `#version 300 es
         precision mediump float;
 
         uniform sampler2D tex;
@@ -40,5 +37,4 @@ export default function () {
 
             FragColor = vec4(color, 1.0);
         }`
-    );
 }

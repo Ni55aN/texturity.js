@@ -1,8 +1,5 @@
-import { createShaderProgram } from '../canvas'
-
-export default function() {
-    return createShaderProgram(
-        `
+export default {
+    vertex: `
         attribute vec2 position;
         uniform vec2 resolution;
         void main(void) {
@@ -12,10 +9,9 @@ export default function() {
             gl_Position = vec4(np, 0.0, 1.0);
         }`,
 
-        `
+    fragment: `
         uniform mediump vec4 color;
         void main(void) {
             gl_FragColor = color;
         }`
-    )
 }

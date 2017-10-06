@@ -1,8 +1,5 @@
-import { createShaderProgram } from '../canvas'
-
-export default function() {
-    return createShaderProgram(
-        `
+export default {
+    vertex: `
         attribute vec2 position;
         uniform vec2 resolution;
         varying lowp vec2 coord;
@@ -13,15 +10,12 @@ export default function() {
             coord = np;
             gl_Position = vec4(np, 0.0, 1.0);
         }`,
-
-        `
+    fragment: `
         varying lowp vec2 coord;
-        uniform mediump vec3 color1;
-        uniform mediump vec3 color2;
+        uniform mediump float r;
         void main(void) {
             lowp float inten = sqrt(coord.x*coord.x+coord.y*coord.y);
-            mediump vec3 color = color1 * inten + color2 * (1.0 - inten);
+            lowp vec3 color = vec3(distance(coord,vec2(0.0,0.0))<r?1.0:0.0);
             gl_FragColor = vec4(color,1.0);
         }`
-    )
 }

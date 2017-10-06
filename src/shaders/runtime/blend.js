@@ -1,8 +1,6 @@
-import { Canvas, createShaderProgram } from '../canvas'
-
 export default function (b, expression) {
-    return createShaderProgram(
-        `
+    return {
+        vertex: `
         attribute vec2 position;
         varying mediump vec2 texcoord;
         void main(void) {
@@ -10,7 +8,7 @@ export default function (b, expression) {
             gl_Position = vec4(position, 0.0, 1.0);
         }
         `,
-        `
+        fragment: `
         #ifdef GL_ES
         precision mediump float;
         #endif
@@ -31,5 +29,5 @@ export default function (b, expression) {
             : 'vec3(value)')};
             gl_FragColor = vec4(${expression}, 1.0);
         }`
-    );
+    }
 }

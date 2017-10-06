@@ -1,0 +1,76 @@
+import blend from './shaders/runtime/blend';
+import fourier from './shaders/runtime/fourier';
+
+import circle from './shaders/precompiled/circle';
+import convolution from './shaders/precompiled/convolution';
+import image from './shaders/precompiled/image';
+import noise from './shaders/precompiled/noise';
+import normal from './shaders/precompiled/normal';
+import radialGradient from './shaders/precompiled/radial-gradient';
+import simple from './shaders/precompiled/simple';
+
+export default class {
+    constructor(gl) {
+        this.gl = gl;
+    }
+
+    createPrecompiledShaders() {
+        var precompiled = {
+            simple,
+            normal,
+            convolution,
+            circle,
+            image,
+            noise,
+            radialGradient
+        };
+
+        Object.keys(precompiled).forEach(key => {
+            var sources = precompiled[key];
+
+            precompiled[key] = this.createShaderProgram(sources);
+        });
+        return precompiled;
+    }
+
+    createShaderProgram(sources) {
+        var gl = this.gl;
+        var vertShader = this.createShader(sources.vertex, gl.VERTEX_SHADER);
+        var fragShader = this.createShader(sources.fragment, gl.FRAGMENT_SHADER);
+        var shaderProgram = gl.createProgram();
+    
+        gl.attachShader(shaderProgram, vertShader);
+        gl.attachShader(shaderProgram, fragShader);
+        gl.linkProgram(shaderProgram);
+        gl.validateProgram(shaderProgram);
+        if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
+            var info = gl.getProgramInfoLog(shaderProgram);
+    
+            throw 'Could not compile WebGL program. \n\n' + info;
+        }
+        return shaderProgram;
+    }
+
+    createShader(source, type) {
+        var gl = this.gl;
+        var shader = gl.createShader(type);
+    
+        gl.shaderSource(shader, source);
+        gl.compileShader(shader);
+        var success = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
+    
+        if (!success)
+            throw `could not compile 
+                    ${type === gl.VERTEX_SHADER ? 'vertex' : 'fragment'} 
+                    shader: ${gl.getShaderInfoLog(shader)}\n ${source}`;
+        return shader;
+    }
+
+    createShaderRuntime(name, ...args) {
+        if (name === 'blend')
+            return this.createShaderProgram(blend(...args));
+        
+        if (name === 'fourier')
+            return this.createShaderProgram(fourier(...args));
+    }
+}
