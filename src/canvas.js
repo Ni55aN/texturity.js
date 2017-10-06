@@ -295,7 +295,7 @@ export class Canvas {
     }
 
     fourierFilter(texture, mask) {
-        var formats = [gl.RGBA32F, gl.RGBA, gl.FLOAT];
+        var formats = [gl.RGBA16F, gl.RGBA, gl.FLOAT];
         var framebuffer = this.initFB(...formats);
         
         if (mask instanceof WebGLTexture) { /// shift mask
@@ -330,7 +330,7 @@ export class Canvas {
     }
 
     fourierTransform(texture, inverse = false) {
-        var formats = [gl.RGBA32F, gl.RGBA, gl.FLOAT];
+        var formats = [gl.RGBA16F, gl.RGBA, gl.FLOAT];
         var framebuffer = this.initFB(...formats);
         var fourier = FourierProgram(this.w, this.h, inverse);
 
