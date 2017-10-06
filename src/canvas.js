@@ -10,6 +10,7 @@ import ImageProgram from './programs/image';
 import NoiseProgram from './programs/noise';
 import NormalProgram from './programs/normal';
 import SimpleProgram from './programs/simple';
+import {FloatFrameBuffer} from './utils/framebuffer';
 
 var gl = null;
 var element = null;
@@ -227,50 +228,6 @@ export class Canvas {
         
         return this;
     }
-    
-    initFB(internalFormat, format, type) {
-        if (!(gl instanceof WebGL2RenderingContext)) throw new Error('Need webgl 2');
-        //gl.getExtension('OES_texture_float_linear');
-        var ext = gl.getExtension('EXT_color_buffer_float');
-
-        if (!ext) 
-            alert('no EXT_color_buffer_float');
-        
-        var fb = gl.createFramebuffer();
-
-        gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
-
-        var fbTex = gl.createTexture();
-        
-        gl.bindTexture(gl.TEXTURE_2D, fbTex);
-        gl.texImage2D(gl.TEXTURE_2D, 0, internalFormat, element.width, element.height, 0, format, type, null);
-
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
-        
-        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, fbTex, 0);
-
-        var status = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
-
-        if (status != gl.FRAMEBUFFER_COMPLETE) 
-            alert('can not render to floating point textures');
-        
-        return { buffer: fb, texture: fbTex };
-    }
-
-    createFloatTexture() {
-        var texture = gl.createTexture();
-        
-        gl.bindTexture(gl.TEXTURE_2D, texture);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
-
-        return texture;
-    }
 
     drawFourierSpectrum(texture) {
        
@@ -295,20 +252,19 @@ export class Canvas {
     }
 
     fourierFilter(texture, mask) {
-        var formats = [gl.RGBA16F, gl.RGBA, gl.FLOAT];
-        var framebuffer = this.initFB(...formats);
+        var fb = new FloatFrameBuffer(gl, element.width, element.height);
         
         if (mask instanceof WebGLTexture) { /// shift mask
             var uv =
-                [
-                    -0.5, 0.5,
-                    0.5, 0.5,
-                    0.5, -0.5,
+                    [
+                        -0.5, 0.5,
+                        0.5, 0.5,
+                        0.5, -0.5,
             
-                    0.5, -0.5,
-                    -0.5, -0.5,
-                    -0.5, 0.5
-                ]
+                        0.5, -0.5,
+                        -0.5, -0.5,
+                        -0.5, 0.5
+                    ]
             var params = [[gl.TEXTURE_WRAP_T, gl.REPEAT], [gl.TEXTURE_WRAP_S, gl.REPEAT]];
 
             this.drawTexture(mask, 0, 0, element.width, element.height, params, uv)
@@ -318,20 +274,12 @@ export class Canvas {
 
         this.blend(texture, mask, 'vec3(a.rg*b.r,a.b)');
 
-        var floatTexture = this.createFloatTexture();
-        
-        gl.texImage2D(gl.TEXTURE_2D, 0, formats[0], element.width, element.height, 0, formats[1], formats[2], null);
-        gl.copyTexImage2D(gl.TEXTURE_2D, 0, formats[0], 0, 0, element.width, element.height, 0);
-        
-        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-        gl.deleteFramebuffer(framebuffer.buffer);
-
-        return floatTexture;
+        return fb.result();
     }
 
     fourierTransform(texture, inverse = false) {
-        var formats = [gl.RGBA16F, gl.RGBA, gl.FLOAT];
-        var framebuffer = this.initFB(...formats);
+        var fb = new FloatFrameBuffer(gl, element.width, element.height);
+            
         var fourier = FourierProgram(this.w, this.h, inverse);
 
         useProgram(fourier);
@@ -339,18 +287,7 @@ export class Canvas {
         gl.bindTexture(gl.TEXTURE_2D, texture);
         this.drawRect(0, 0, this.w, this.h);
 
-        var floatTexture = this.createFloatTexture();
-
-        gl.texImage2D(gl.TEXTURE_2D, 0, formats[0], element.width, element.height, 0, formats[1], formats[2], null);
-        gl.copyTexImage2D(gl.TEXTURE_2D, 0, formats[0], 0, 0, element.width, element.height, 0);
-    
-        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-        gl.deleteFramebuffer(framebuffer.buffer);
-        
-        useProgram(programs.simple);
-        gl.deleteProgram(fourier);
-
-        return floatTexture;
+        return fb.result();
     }
 
     normalMap(texture, scale) {
