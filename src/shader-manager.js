@@ -28,7 +28,11 @@ export default class {
         Object.keys(precompiled).forEach(key => {
             var sources = precompiled[key];
 
-            precompiled[key] = this.createShaderProgram(sources);
+            try {
+                precompiled[key] = this.createShaderProgram(sources);
+            } catch (e) {
+                console.warn(e);
+            }
         });
         return precompiled;
     }
@@ -46,7 +50,7 @@ export default class {
         if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
             var info = gl.getProgramInfoLog(shaderProgram);
     
-            throw 'Could not compile WebGL program. \n\n' + info;
+            throw new Error('Could not compile WebGL program. \n\n' + info);
         }
         return shaderProgram;
     }
