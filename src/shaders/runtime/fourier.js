@@ -1,3 +1,5 @@
+import grayChunk from '../chunks/gray'
+
 export default function (w, h, inverse) {
     
     var assign = `
@@ -48,9 +50,7 @@ export default function (w, h, inverse) {
             return atan(real*real+imag*imag);
         }
 
-        float toGray(vec3 c){
-            return dot(c,vec3(0.299, 0.587, 0.114));
-        }
+        ${grayChunk()}
         
         void main(void) {
             float real = 0.0;

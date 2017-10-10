@@ -1,3 +1,5 @@
+import colorModelsChunk from '../chunks/color-models';
+
 export default function (b, expression) {
     return {
         vertex: `
@@ -20,6 +22,8 @@ export default function (b, expression) {
             'uniform mediump vec3 color'
             : 'uniform mediump float value')};
         
+        ${colorModelsChunk()}
+
         void main(void) {
             vec3 a = texture2D(texture1, texcoord).rgb;
             vec3 b = ${b instanceof WebGLTexture ?
