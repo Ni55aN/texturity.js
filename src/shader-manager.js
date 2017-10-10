@@ -1,5 +1,6 @@
 import blend from './shaders/runtime/blend';
 import fourier from './shaders/runtime/fourier';
+import neighbors from './shaders/runtime/neighbors';
 
 import circle from './shaders/precompiled/circle';
 import convolution from './shaders/precompiled/convolution';
@@ -76,5 +77,10 @@ export default class {
         
         if (name === 'fourier')
             return this.createShaderProgram(fourier(...args));
+        
+        if (name === 'neighbors')
+            return this.createShaderProgram(neighbors(...args));
+            
+        throw new Error('Shader program not registered');
     }
 }

@@ -221,6 +221,20 @@ export class Canvas {
         return this;
     }
 
+    neighbors(texture, expression) {
+        var neighborsProgram = shaderManager.createShaderRuntime('neighbors', expression);
+        
+        useProgram(neighborsProgram);
+
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.uniform1i(gl.getUniformLocation(neighborsProgram, 'tex'), 0);
+
+        this.drawBuffer([-1, -1, -1, 1, 1, 1, 1, 1, 1, -1, -1, -1]);
+
+        useProgram(programs.simple);
+        gl.deleteProgram(neighborsProgram);  
+    }
+
     drawFourierSpectrum(texture) {
        
         this.blend(texture, element.width * element.height, 'vec3(a.z/sqrt(b+a.z*a.z))');
