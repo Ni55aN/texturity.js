@@ -1,6 +1,6 @@
 import colorModelsChunk from '../chunks/color-models';
 
-export default function (b, expression) {
+export default function (b, expression, preExpressions = '') {
     return {
         vertex: `
         attribute vec2 position;
@@ -31,6 +31,7 @@ export default function (b, expression) {
         : (b instanceof Array ?
             'color'
             : 'vec3(value)')};
+            ${preExpressions}
             gl_FragColor = vec4(${expression}, 1.0);
         }`
     }

@@ -189,8 +189,8 @@ export class Canvas {
         return this;
     }
 
-    blend(texture, b, expression) {
-        var blendProgram = shaderManager.createShaderRuntime('blend', b, expression);
+    blend(texture, b, expression, preExpressions = '') {
+        var blendProgram = shaderManager.createShaderRuntime('blend', b, expression, preExpressions);
 
         useProgram(blendProgram);
         
