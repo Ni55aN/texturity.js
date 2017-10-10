@@ -1,4 +1,5 @@
 import colorModelsChunk from '../chunks/color-models';
+import grayChunk from '../chunks/gray';
 
 export default function (b, expression, preExpressions = '') {
     return {
@@ -23,6 +24,7 @@ export default function (b, expression, preExpressions = '') {
             : 'uniform mediump float value')};
         
         ${colorModelsChunk()}
+        ${grayChunk()}
 
         void main(void) {
             vec3 a = texture2D(texture1, texcoord).rgb;
