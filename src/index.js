@@ -165,8 +165,10 @@ export class Canvas {
 
         for (var i = 0; i < iterations; i++) {
             this.convolution(currentTexture, kernel)
-            this.disposeTexture(currentTexture)
-            currentTexture = this.toTexture();
+            if (i > 0)
+                disposeTexture(currentTexture)
+            if (i + 1 < iterations)
+                currentTexture = this.toTexture();
         }
         return this;
     }
@@ -309,13 +311,6 @@ export class Canvas {
         return this;
     }
 
-    disposeTexture(texture) {
-        var index = textures.indexOf(texture);
-
-        gl.deleteTexture(texture);
-        textures.splice(index, 1);
-    }
-
     toTexture() {
         var texture = gl.createTexture();
 
@@ -361,10 +356,18 @@ export class Canvas {
     }
 }
 
-export function disposeTextures() {
-    textures.forEach(t => gl.deleteTexture(t));
-    textures = [];
+export function disposeTexture(texture) {
+    var index = textures.indexOf(texture);
+
+    if (index !==-1)
+        textures.splice(index, 1);
+    gl.deleteTexture(texture);
 }
+
+export function disposeTextures() {
+    textures.forEach(disposeTexture);
+}
+
 export function getGL() {
     return gl;
 }
