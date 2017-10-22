@@ -41,7 +41,7 @@ export class Canvas {
         var h = this.backup.height;
 
         resize(w, h);
-        this.drawTexture(this.backup.texture, 0, 0, w, h, true);
+        this.drawTexture(this.backup.texture, 0, 0, w, h);
 
         this.backup = null;
 
