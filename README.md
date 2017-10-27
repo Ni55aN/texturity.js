@@ -18,11 +18,21 @@ WebGL based library for fast drawing textures
 
 ### Installing
 
-Download the [latest release](https://github.com/ni55an/texturity.js/releases/latest) or use directly from [Surge](https://surge.sh):
+Download the [latest release](https://github.com/ni55an/texturity.js/releases/latest) or use CDN
 
 ````html
-<script src="https://texturity-js.surge.sh/texturity.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/texturity.js@latest/build/texturity.js"></script>
 ````
+
+Or import as module using NPM
+
+```bash
+npm install --save texturity.js
+```
+
+```js
+import * as Texturity from 'texturity.js';
+```
 
 ### Usage
 
