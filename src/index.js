@@ -383,6 +383,10 @@ export function getGL() {
     return gl;
 }
 
+export function createShader(vertex, fragment) {
+    return shaderManager.createShaderProgram({ vertex, fragment });
+}
+
 export function initGL(contextName = 'webgl', params = {}) {
     if (gl) return gl;
   
