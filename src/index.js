@@ -107,10 +107,15 @@ export class Canvas {
     }
 
     drawTexture(texture, x, y, w, h, params = [], uvs = null) {
+        /*  1__2
+           6|\ |
+            | \|3
+            5  4
+        */
+        uvs = uvs || [0, 1, 1, 1, 1, 0, 1, 0, 0, 0, 0, 1];
+
         useProgram(programs.image);
         var uvBuffer = gl.createBuffer();
-
-        uvs = uvs || [0, 1, 1, 1, 1, 0, 1, 0, 0, 0, 0, 1];
 
         gl.bindBuffer(gl.ARRAY_BUFFER, uvBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(uvs), gl.STATIC_DRAW);
@@ -137,6 +142,12 @@ export class Canvas {
         gl.deleteBuffer(uvBuffer);
   
         return this;
+    }
+
+    cropTexture(texture, [origw, origh], x, y, w, h) {
+        resize(w, h);
+    
+        this.drawTexture(texture, -x, -y, origw, origh);
     }
 
     fillStyle(color) {
