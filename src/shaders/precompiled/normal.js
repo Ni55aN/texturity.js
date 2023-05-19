@@ -12,7 +12,7 @@ export default {
         uniform sampler2D texture;
         uniform mediump float scale;
 
-        lowp float grey(vec3 color){
+        lowp float grey(lowp vec3 color){
             return dot(color.rgb, vec3(0.299, 0.587, 0.114));
         }
 
@@ -37,6 +37,6 @@ export default {
 
 
             gl_FragColor = vec4(r,1.0);
-            
+
         }`
 }
