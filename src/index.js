@@ -229,7 +229,6 @@ export class Canvas {
 
         useProgram(programs.simple);
         gl.activeTexture(gl.TEXTURE0);
-        gl.deleteProgram(blendProgram);
         
         return this;
     }
@@ -245,7 +244,6 @@ export class Canvas {
         this.drawBuffer([-1, -1, -1, 1, 1, 1, 1, 1, 1, -1, -1, -1]);
 
         useProgram(programs.simple);
-        gl.deleteProgram(neighborsProgram);  
     }
 
     drawFourierSpectrum(texture) {
@@ -448,4 +446,10 @@ export function useProgram(program) {
     var resolLoc = gl.getUniformLocation(program, 'resolution');
 
     gl.uniform2fv(resolLoc, [element.width, element.height]);
+}
+
+export function clearCache() {
+    if (shaderManager) {
+        shaderManager.clear()
+    }
 }
